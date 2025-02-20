@@ -4,12 +4,12 @@ import pyvips
 
 def calcula_dimensoes(width, height):
     if width >= height:
-        scale = 3072 / width
-        new_width = 3072
+        scale = image_size / width
+        new_width = image_size
         new_height = int(height * scale)
     else:
-        scale = 3072 / height
-        new_height = 3072
+        scale = image_size / height
+        new_height = image_size
         new_width = int(width * scale)
     return new_width, new_height, scale
 
@@ -26,7 +26,7 @@ def salva_imagem_png(tif_path, final_image):
     except Exception as e:
         print(f'Erro ao salvar a imagem {nome_arquivo} como PNG: {e}')
 
-def comprime_imagem(tif_path):
+def comprime_imagem(tif_path, image_size):
     try:
         # Abre a imagem TIF com acesso sequencial para evitar carregar tudo na RAM
         image = pyvips.Image.new_from_file(tif_path, access='sequential')
@@ -36,7 +36,7 @@ def comprime_imagem(tif_path):
 
     width = image.width
     height = image.height
-    new_width, new_height, scale = calcula_dimensoes(width, height)
+    new_width, new_height, scale = calcula_dimensoes(width, height, image_size)
     
     try:
         resized = image.resize(scale)
@@ -51,8 +51,8 @@ def comprime_imagem(tif_path):
     try:
         final_image = pyvips.Image.black(3072, 3072, bands=4)
         
-        left = (3072 - new_width) // 2
-        top = (3072 - new_height) // 2
+        left = (image_size - new_width) // 2
+        top = (image_size - new_height) // 2
         
         final_image = final_image.insert(resized, left, top)
     except Exception as e:
@@ -62,11 +62,15 @@ def comprime_imagem(tif_path):
     salva_imagem_png(tif_path, final_image)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Uso: python compressor.py path/da/pasta_mae')
+    if len(sys.argv) != 3:
+        print('Uso: python compressor.py <image_size> <path/da/pasta_mae>')
         sys.exit(1)
 
-    pasta_mae = sys.argv[1]
+    image_size = sys.argv[1]
+    if image_size%2 != 0:
+        print('Warning: o tamanho da imagem deve ser multiplo de 2.')
+    pasta_mae = sys.argv[2]
+
 
     if not os.path.isdir(pasta_mae):
         print(f'Erro: a pasta {pasta_mae} não existe.')
@@ -85,6 +89,6 @@ if __name__ == '__main__':
 
     for arquivo_tif in arquivos_tif:
         try:
-            comprime_imagem(arquivo_tif)
+            comprime_imagem(arquivo_tif, image_size)
         except Exception as e:
             print(f'Erro ao processar {arquivo_tif}: {e}')
