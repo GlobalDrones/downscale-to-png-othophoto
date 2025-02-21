@@ -2,7 +2,7 @@ import os
 import sys
 import pyvips
 
-def calcula_dimensoes(width, height):
+def calcula_dimensoes(width, height, image_size):
     if width >= height:
         scale = image_size / width
         new_width = image_size
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         print('Uso: python compressor.py <image_size> <path/da/pasta_mae>')
         sys.exit(1)
 
-    image_size = sys.argv[1]
+    image_size = int(sys.argv[1])
     if image_size%2 != 0:
         print('Warning: o tamanho da imagem deve ser multiplo de 2.')
     pasta_mae = sys.argv[2]
